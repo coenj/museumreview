@@ -28,7 +28,7 @@
 
         var map;
         var infowindow;
-var service;
+        var service;
         function initMap() {
             var searchcity = { lat: 51.908082, lng: 4.480408 };
 
@@ -70,18 +70,18 @@ var service;
                         console.error(status);
                         return;
                     }
-                    var content = result.name;
+                    var content = '<div><b>' + result.name + '</b><br>Totale rating: ' + result.rating;
                     var stars = 0;
                     var sumStars = 0;
                     if (result.reviews) {
                         for (var i = 0; i < result.reviews.length; i++) {
                             stars = result.reviews[i].rating;
                             sumStars += stars;
-                            content += stars;
                         }
-                        content += " Recente rating:" + sumStars / result.reviews.length;
+                        content += " | Recente rating:" + sumStars / result.reviews.length;
                         content += '</div>'
                     }
+                    document.getElementById('museum-review').innerHTML = content;
                     infowindow.setContent(content);
                     infowindow.open(map, marker);
                 });
@@ -92,6 +92,7 @@ var service;
 </head>
 
 <body>
+    <div id=museum-review></div>
     <div id="map"></div>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBp_b7wSikCTgXE98xV1KuZ-Z0OLPZu4Xw&libraries=places&callback=initMap"
         async defer></script>
