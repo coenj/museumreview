@@ -28,7 +28,7 @@
 
         var map;
         var infowindow;
-
+var service;
         function initMap() {
             var searchcity = { lat: 51.908082, lng: 4.480408 };
 
@@ -38,28 +38,13 @@
             });
 
             infowindow = new google.maps.InfoWindow();
-            var service = new google.maps.places.PlacesService(map);
-
-
-
+            service = new google.maps.places.PlacesService(map);
             service.nearbySearch({
                 location: searchcity,
                 radius: 5000,
-                type: ['museum']
+                type: ['museum'],
+                keyword: 'art'
             }, callback);
-
-            google.maps.event.addListener(marker, 'click', function () {
-                service.getDetails({
-                    placeId: 'ChIJvQBNdJ80xEcRmNuMeHpljHw'
-                }, function (result, status) {
-                    if (status !== google.maps.places.PlacesServiceStatus.OK) {
-                        console.error(status);
-                        return;
-                    }
-                    infoWindow.setContent(result.name);
-                    infoWindow.open(map, marker);
-                });
-            });
         }
 
 
@@ -79,7 +64,28 @@
             });
 
 
-
+            google.maps.event.addListener(marker, 'click', function () {
+                service.getDetails(place, function (result, status) {
+                    if (status !== google.maps.places.PlacesServiceStatus.OK) {
+                        console.error(status);
+                        return;
+                    }
+                    var content = result.name;
+                    var stars = 0;
+                    var sumStars = 0;
+                    if (result.reviews) {
+                        for (var i = 0; i < result.reviews.length; i++) {
+                            stars = result.reviews[i].rating;
+                            sumStars += stars;
+                            content += stars;
+                        }
+                        content += " Recente rating:" + sumStars / result.reviews.length;
+                        content += '</div>'
+                    }
+                    infowindow.setContent(content);
+                    infowindow.open(map, marker);
+                });
+            });
 
         }
     </script>
