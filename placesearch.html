@@ -10,7 +10,7 @@
        * element that contains the map. */
 
         #map {
-            height: 100%;
+            height: 33%;
         }
         /* Optional: Makes the sample page fill the window. */
 
@@ -34,7 +34,7 @@
 
             map = new google.maps.Map(document.getElementById('map'), {
                 center: searchcity,
-                zoom: 15
+                zoom: 13
             });
 
             infowindow = new google.maps.InfoWindow();
@@ -63,6 +63,25 @@
                 position: place.geometry.location
             });
 
+            service.getDetails(place, function (result, status) {
+                if (status !== google.maps.places.PlacesServiceStatus.OK) {
+                    console.error(status);
+                    return;
+                }
+                var content = '<div><b>' + result.name + '</b><br>Totale rating: ' + result.rating;
+                var stars = 0;
+                var sumStars = 0;
+                if (result.reviews) {
+                    for (var i = 0; i < result.reviews.length; i++) {
+                        stars = result.reviews[i].rating;
+                        sumStars += stars;
+                    }
+                    content += " | Recente rating:" + sumStars / result.reviews.length;
+                    content += '</div><br>'
+                }
+                document.getElementById('museum-review').innerHTML += content;
+            
+            });
 
             google.maps.event.addListener(marker, 'click', function () {
                 service.getDetails(place, function (result, status) {
@@ -81,7 +100,7 @@
                         content += " | Recente rating:" + sumStars / result.reviews.length;
                         content += '</div>'
                     }
-                    document.getElementById('museum-review').innerHTML = content;
+                   
                     infowindow.setContent(content);
                     infowindow.open(map, marker);
                 });
