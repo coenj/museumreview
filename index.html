@@ -2,7 +2,7 @@
 <html>
 
 <head>
-    <title>Place details</title>
+    <title>Museum review</title>
     <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
     <meta charset="utf-8">
     <style>
@@ -58,7 +58,7 @@
                     content += " Recente rating:" + sumStars/place.reviews.length;
                     content += '</div>'
                     document.getElementById('museum-review').innerHTML=content;
-                    
+
                     google.maps.event.addListener(marker, 'click', function () {
                         infowindow.setContent(content);
                         infowindow.open(map, this);
