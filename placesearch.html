@@ -2,7 +2,7 @@
 <html>
 
 <head>
-    <title>Museum in Rotterdam</title>
+    <title>Museum review</title>
     <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
     <meta charset="utf-8">
     <style>
@@ -41,7 +41,7 @@
             service = new google.maps.places.PlacesService(map);
             service.nearbySearch({
                 location: searchcity,
-                radius: 5000,
+                radius: 2000,
                 type: ['museum'],
                 keyword: 'art'
             }, callback);
@@ -68,19 +68,20 @@
                     console.error(status);
                     return;
                 }
-                var content = '<div><b>' + result.name + '</b><br>Totale rating: ' + result.rating;
-                var stars = 0;
-                var sumStars = 0;
                 if (result.reviews) {
+                    var content = '<div><b>' + result.name + '</b><br>Totale rating: ' + result.rating;
+                    var stars = 0;
+                    var sumStars = 0;
+
                     for (var i = 0; i < result.reviews.length; i++) {
                         stars = result.reviews[i].rating;
                         sumStars += stars;
                     }
                     content += " | Recente rating:" + sumStars / result.reviews.length;
+
                     content += '</div><br>'
+                    document.getElementById('museum-review').innerHTML += content;
                 }
-                document.getElementById('museum-review').innerHTML += content;
-            
             });
 
             google.maps.event.addListener(marker, 'click', function () {
@@ -100,7 +101,7 @@
                         content += " | Recente rating:" + sumStars / result.reviews.length;
                         content += '</div>'
                     }
-                   
+
                     infowindow.setContent(content);
                     infowindow.open(map, marker);
                 });
@@ -111,8 +112,9 @@
 </head>
 
 <body>
-    <div id=museum-review></div>
+    
     <div id="map"></div>
+    <div id=museum-review></div>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBp_b7wSikCTgXE98xV1KuZ-Z0OLPZu4Xw&libraries=places&callback=initMap"
         async defer></script>
 </body>

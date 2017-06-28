@@ -10,7 +10,7 @@
        * element that contains the map. */
 
         #map {
-            height: 100%;
+            height: 33%;
         }
         /* Optional: Makes the sample page fill the window. */
 
@@ -26,55 +26,125 @@
         // parameter when you first load the API. For example:
         // <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places">
 
+        var map;
+        var infowindow;
+        var service;
         function initMap() {
-            var boijmansPos = { lat: 51.914410, lng: 4.473305 }
-            var map = new google.maps.Map(document.getElementById('map'), {
-                center: boijmansPos,
-                zoom: 18
+            var searchcity = { lat: 51.908082, lng: 4.480408 };
+
+            map = new google.maps.Map(document.getElementById('map'), {
+                center: searchcity,
+                zoom: 13
+            });
+            var geocoder = new google.maps.Geocoder();
+
+            document.getElementById('submit').addEventListener('click', function () {
+                geocodeAddress(geocoder, map);
             });
 
-            var infowindow = new google.maps.InfoWindow();
-            var service = new google.maps.places.PlacesService(map);
-
-            service.getDetails({
-                placeId: 'ChIJvQBNdJ80xEcRmNuMeHpljHw'
-            }, function (place, status) {
-                if (status === google.maps.places.PlacesServiceStatus.OK) {
-                    var marker = new google.maps.Marker({
-                        map: map,
-                        position: place.geometry.location
-                    });
-                    var content = '<div><strong>' + place.name + '</strong><br>' +
-                        'Place ID: ' + place.place_id + '<br>' +
-                        place.formatted_address + ' Totale rating: ' + place.rating + ' sterren ';
-                    var stars = 0;
-                    var sumStars=0;
-                    
-                    for (var i = 0; i < place.reviews.length; i++) {
-                        stars = place.reviews[i].rating;
-                        sumStars += stars;
-                        content += stars;
+            function geocodeAddress(geocoder, resultsMap) {
+                var address = document.getElementById('address').value;
+                geocoder.geocode({ 'address': address }, function (results, status) {
+                    if (status === 'OK') {
+                        searchcity=results[0].geometry.location;
+                        resultsMap.setCenter(searchcity);
+                        var marker = new google.maps.Marker({
+                            map: resultsMap,
+                            position: results[0].geometry.location
+                        });
+                        infowindow = new google.maps.InfoWindow();
+                        service = new google.maps.places.PlacesService(map);
+                        service.nearbySearch({
+                            location: searchcity,
+                            radius: 2000,
+                            type: ['museum'],
+                            keyword: 'art'
+                        }, callback);
+                    } else {
+                        alert('Geocode was not successful for the following reason: ' + status);
                     }
-                    content += " Recente rating:" + sumStars/place.reviews.length;
-                    content += '</div>'
-                    document.getElementById('museum-review').innerHTML=content;
+                });
+            }
 
-                    google.maps.event.addListener(marker, 'click', function () {
-                        infowindow.setContent(content);
-                        infowindow.open(map, this);
-                    });
+        }
+
+
+        function callback(results, status) {
+            if (status === google.maps.places.PlacesServiceStatus.OK) {
+                for (var i = 0; i < results.length; i++) {
+                    createMarker(results[i]);
+                }
+            }
+        }
+
+        function createMarker(place) {
+            document.getElementById('museum-review').innerHTML ="";
+            var placeLoc = place.geometry.location;
+            var marker = new google.maps.Marker({
+                map: map,
+                position: placeLoc
+            });
+
+            service.getDetails(place, function (result, status) {
+                if (status !== google.maps.places.PlacesServiceStatus.OK) {
+                    console.error(status);
+                    return;
+                }
+                if (result.reviews) {
+                    var content = "";
+                    content += '<div><b>' + result.name + '</b><br>Totale rating: ' + result.rating;
+                    var stars = 0;
+                    var sumStars = 0;
+
+                    for (var i = 0; i < result.reviews.length; i++) {
+                        stars = result.reviews[i].rating;
+                        sumStars += stars;
+                    }
+                    content += " | Recente rating:" + sumStars / result.reviews.length;
+
+                    content += '</div><br>'
+                    document.getElementById('museum-review').innerHTML += content;
                 }
             });
+
+            google.maps.event.addListener(marker, 'click', function () {
+                service.getDetails(place, function (result, status) {
+                    if (status !== google.maps.places.PlacesServiceStatus.OK) {
+                        console.error(status);
+                        return;
+                    }
+                
+                    var content = "";
+                    content += '<div><b>' + result.name + '</b><br>Totale rating: ' + result.rating;
+                    var stars = 0;
+                    var sumStars = 0;
+                    if (result.reviews) {
+                        for (var i = 0; i < result.reviews.length; i++) {
+                            stars = result.reviews[i].rating;
+                            sumStars += stars;
+                        }
+                        content += " | Recente rating:" + sumStars / result.reviews.length;
+                        content += '</div>'
+                    }
+
+                    infowindow.setContent(content);
+                    infowindow.open(map, marker);
+                });
+            });
+
         }
     </script>
 </head>
 
 <body>
-    <div id=museum-review></div>
+    <div id="floating-panel">
+        <input id="address" type="textbox" value="Utrecht">
+        <input id="submit" type="button" value="Geocode">
+    </div>
     <div id="map"></div>
-    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBp_b7wSikCTgXE98xV1KuZ-Z0OLPZu4Xw&libraries=places&callback=initMap">
-
-    </script>
+    <div id=museum-review></div>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBp_b7wSikCTgXE98xV1KuZ-Z0OLPZu4Xw&libraries=places&callback=initMap"
+        async defer></script>
 </body>
 
 </html>
