@@ -46,17 +46,18 @@
                 var address = document.getElementById('address').value;
                 geocoder.geocode({ 'address': address }, function (results, status) {
                     if (status === 'OK') {
-                        searchcity=results[0].geometry.location;
+                        searchcity = results[0].geometry.location;
                         resultsMap.setCenter(searchcity);
                         var marker = new google.maps.Marker({
                             map: resultsMap,
                             position: results[0].geometry.location
                         });
+                        // search all nearby art museums
                         infowindow = new google.maps.InfoWindow();
                         service = new google.maps.places.PlacesService(map);
                         service.nearbySearch({
                             location: searchcity,
-                            radius: 2000,
+                            radius: 5000,
                             type: ['museum'],
                             keyword: 'art'
                         }, callback);
@@ -78,34 +79,50 @@
         }
 
         function createMarker(place) {
-            document.getElementById('museum-review').innerHTML ="";
+            document.getElementById('museum-review').innerHTML = "";
             var placeLoc = place.geometry.location;
             var marker = new google.maps.Marker({
                 map: map,
                 position: placeLoc
             });
 
-            service.getDetails(place, function (result, status) {
-                if (status !== google.maps.places.PlacesServiceStatus.OK) {
-                    console.error(status);
-                    return;
-                }
-                if (result.reviews) {
-                    var content = "";
-                    content += '<div><b>' + result.name + '</b><br>Totale rating: ' + result.rating;
-                    var stars = 0;
-                    var sumStars = 0;
+            function eigenFunctie(result, status) {
+                console.log(result, status);
+            }
 
-                    for (var i = 0; i < result.reviews.length; i++) {
-                        stars = result.reviews[i].rating;
-                        sumStars += stars;
+            function getContent() {
+                var mContent = "";
+                //service.getDetails(place, eigenFunctie);
+                service.getDetails(place, function (result, status) {
+
+                    if (status !== google.maps.places.PlacesServiceStatus.OK) {
+                        console.error(status);
+                        return;
                     }
-                    content += " | Recente rating:" + sumStars / result.reviews.length;
+                    if (result.reviews) {
 
-                    content += '</div><br>'
-                    document.getElementById('museum-review').innerHTML += content;
-                }
-            });
+                        mContent += '<div><b>' + result.name + '</b><br>Totale rating: ' + result.rating;
+                        var stars = 0;
+                        var sumStars = 0;
+
+                        for (var i = 0; i < result.reviews.length; i++) {
+                            stars = result.reviews[i].rating;
+                            sumStars += stars;
+                        }
+                        mContent += " | Recente rating:" + sumStars / result.reviews.length;
+
+                        mContent += '</div><br>';
+
+                        console.log(mContent);
+
+                        document.getElementById('museum-review').innerHTML += mContent;
+
+                    }
+
+                });
+            }
+
+            getContent();
 
             google.maps.event.addListener(marker, 'click', function () {
                 service.getDetails(place, function (result, status) {
@@ -113,7 +130,7 @@
                         console.error(status);
                         return;
                     }
-                
+
                     var content = "";
                     content += '<div><b>' + result.name + '</b><br>Totale rating: ' + result.rating;
                     var stars = 0;
@@ -139,7 +156,7 @@
 <body>
     <div id="floating-panel">
         <input id="address" type="textbox" value="Utrecht">
-        <input id="submit" type="button" value="Geocode">
+        <input id="submit" type="button" value="Ok">
     </div>
     <div id="map"></div>
     <div id=museum-review></div>
