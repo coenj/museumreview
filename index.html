@@ -5,6 +5,7 @@
     <title>Museum review</title>
     <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
     <meta charset="utf-8">
+    <link rel="stylesheet" type="text/css" href="css/stylesheet.css">
     <style>
         /* Always set the map height explicitly to define the size of the div
        * element that contains the map. */
@@ -57,7 +58,7 @@
                         service = new google.maps.places.PlacesService(map);
                         service.nearbySearch({
                             location: searchcity,
-                            radius: 5000,
+                            radius: 3000,
                             type: ['museum'],
                             keyword: 'art'
                         }, callback);
@@ -86,68 +87,62 @@
                 position: placeLoc
             });
 
-            function eigenFunctie(result, status) {
-                console.log(result, status);
-            }
 
             function getContent() {
-                var mContent = "";
-                //service.getDetails(place, eigenFunctie);
-                service.getDetails(place, function (result, status) {
-
-                    if (status !== google.maps.places.PlacesServiceStatus.OK) {
-                        console.error(status);
-                        return;
-                    }
-                    if (result.reviews) {
-
-                        mContent += '<div><b>' + result.name + '</b><br>Totale rating: ' + result.rating;
-                        var stars = 0;
-                        var sumStars = 0;
-
-                        for (var i = 0; i < result.reviews.length; i++) {
-                            stars = result.reviews[i].rating;
-                            sumStars += stars;
-                        }
-                        mContent += " | Recente rating:" + sumStars / result.reviews.length;
-
-                        mContent += '</div><br>';
-
-                        console.log(mContent);
-
-                        document.getElementById('museum-review').innerHTML += mContent;
-
-                    }
-
-                });
+                service.getDetails(place, placeReviews);
             }
 
-            getContent();
+            function placeReviews(result, status) {
+                totalRevs=0;
+                if (status !== google.maps.places.PlacesServiceStatus.OK) {
+                    console.error(status);
+                    return;
+                }
 
-            google.maps.event.addListener(marker, 'click', function () {
-                service.getDetails(place, function (result, status) {
-                    if (status !== google.maps.places.PlacesServiceStatus.OK) {
-                        console.error(status);
-                        return;
-                    }
-
-                    var content = "";
-                    content += '<div><b>' + result.name + '</b><br>Totale rating: ' + result.rating;
+                if (result.reviews) {
+                    var mContent = "";
+                   
                     var stars = 0;
                     var sumStars = 0;
-                    if (result.reviews) {
-                        for (var i = 0; i < result.reviews.length; i++) {
+                    var reviewTime = 0;
+                    var today = Date.now()/1000;
+                    
+                    console.log(result);
+                    for (var i = 0; i < result.reviews.length; i++) {
+
+                        var reviewTime = result.reviews[i].time;
+                        console.log(reviewTime + "xxxx" +today);
+                        if (reviewTime > today - 7776000) {
                             stars = result.reviews[i].rating;
                             sumStars += stars;
+                            totalRevs++;
                         }
-                        content += " | Recente rating:" + sumStars / result.reviews.length;
-                        content += '</div>'
                     }
+                    mContent += '<div><b>' + result.name + '</b><br>rating: ' + result.rating;
+                   
+                   if (sumStars) {mContent += " recent: " + (sumStars / totalRevs).toFixed(1);}
 
-                    infowindow.setContent(content);
-                    infowindow.open(map, marker);
-                });
-            });
+                    mContent +=  '</div><br>';
+
+                    document.getElementById('museum-review').innerHTML += mContent;
+
+                    marker.setIcon("museumIcon.png");
+
+
+
+                    google.maps.event.addListener(marker, 'click', function () {
+
+                        infowindow.setContent(mContent);
+                        infowindow.open(map, marker);
+
+                    });
+                }
+                console.log(result, status);
+
+            }
+            getContent();
+
+
 
         }
     </script>
